@@ -1,0 +1,112 @@
+
+title: "duboischallenge"
+output: html_document
+---
+
+# libraries
+
+library(tidyverse)
+library(ggh4x)
+
+# loading data
+
+data <- read.csv("https://raw.githubusercontent.com/ajstarks/dubois-data-portraits/master/challenge/2022/challenge07/data.csv")
+
+# plotting
+
+data %>%  
+
+# converting data to long format for plotting
+
+  pivot_longer(!c(Gender,Group),names_to="status",values_to="percent") %>% 
+  
+# reverting the status order for plotting
+  
+  mutate(status = factor(status,levels = c("Widowed","Married","Single"))) %>%
+  
+# scaffolding for ggplot stacked bars
+
+  ggplot(aes(x=ifelse(Gender=="Male",-percent,percent),fill=status,y=Group)) +
+
+# stacked bars
+
+  geom_bar(position="stack",stat="identity",width=1) +
+
+# trimming y axis
+
+  scale_y_discrete(expand=c(0,0)) +
+
+# transformation of the x axis
+
+  scale_x_continuous(breaks=seq(-100,100,10),labels=abs(seq(-100,100,10)),minor_breaks = seq(-100,100,2),limits=c(-100,100),expand=c(0,0)) +
+  
+# adding Du Bois' colours for each category
+
+  scale_fill_manual(values=c("#478a65","#c21a3d","#2863b4"),guide="none") +
+
+# labels  
+    
+  labs(
+    y="AGES.",
+    x="PER CENTS.",
+    title="Conjugal condition of American Negroes according to age periods.",
+    subtitle="Condition conjugale de Nègres Americains au point de vue l'age.\nDone by Atlanta University.",
+    caption="@phdskat | Du Bois Challenge 2022") +
+
+# theme adjustments: background colour alignment, gridlines and axes 
+  
+   theme(
+    panel.background = element_rect(fill = NA),
+    plot.background = element_rect(fill = "#e6d9ca"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(colour="black"),
+    panel.grid.minor.x = element_line(colour=rgb(0, 0, 0, 150, maxColorValue = 255)),
+    panel.grid.minor.y = element_blank(),
+    panel.ontop = TRUE,
+    axis.text = element_text(face="bold",size=10,colour="black"),
+    axis.text.y = element_text(vjust=-0.75),
+    axis.ticks = element_blank(),
+    axis.title = element_text(face="bold",size=9,colour="black"),
+    axis.title.y = element_blank()) +
+
+# vertical and horizontal lines as substitutes/additions to gridlines
+
+  geom_hline(yintercept=c(1.5,2.5,3.5,4.5,5.5,6.5,7.5,8.5,9.5)) +
+  geom_vline(xintercept=0,size=0.75) + 
+    
+# manually annotating labels per Du Bois style, in specific locations on the plot
+
+  annotate("text",label="SINGLE",colour="black",y=1.85,x=-35,angle=55,size=5,fontface="bold") +
+  annotate("text",label="SINGLE",colour="black",y=1.85,x=35,angle=305,size=5,fontface="bold") +
+  annotate("text",label="MARRIED",colour="black",y=5.35,x=-55,angle=55,size=5,fontface="bold") +
+  annotate("text",label="MARRIED",colour="black",y=5.35,x=55,angle=305,size=5,fontface="bold") +
+  annotate("text",label="WIDOWED",colour="black",y=8.5,x=-92.5,angle=70,size=5,fontface="bold") +
+  annotate("text",label="WIDOWED",colour="black",y=7.7,x=91,angle=290,size=5,fontface="bold") +
+  annotate("text",label="MALES.",colour="black",y=9.6,x=-50,size=3,fontface="bold") +
+  annotate("text",label="FEMALES.",colour="black",y=9.6,x=50,size=3,fontface="bold") +
+  
+# manually annotating the y axis since ggh4x's axis duplication (below) doesn't mirror the axis title.
+  
+  annotate("text",label="AGES.",colour="black",y=9.4,x=-100,size=3,fontface="bold",hjust=1.1,vjust=0.35) +
+  annotate("text",label="AGES.",colour="black",y=9.4,x=100,size=3,fontface="bold",hjust=-0.2,vjust=0.35) +
+  
+# adjusting the plot clip to allow outside text
+
+  coord_cartesian(ylim = c(0.5, 9.5), clip = "off") +
+    
+# adding a secondary axis with {gg4x}
+
+  guides(y.sec = "axis") +
+  
+# adjusting title and subtitle
+
+  theme(
+    plot.title = element_text(size=15, colour=rgb(0, 0, 0, 150, maxColorValue = 255),vjust=12,hjust=0.5),
+    plot.subtitle = element_text(size=12, colour=rgb(0, 0, 0, 150, maxColorValue = 255), vjust=10,hjust=0.5,lineheight=2),
+    plot.caption = element_text(size=10, colour="black",face="italic",vjust=-2),
+    plot.margin = unit(c(3,1,1,1),"lines")
+  )
+
+# saving
+  
+ggsave("viz/challenge7.png",dpi=250,width=8,height=10)
